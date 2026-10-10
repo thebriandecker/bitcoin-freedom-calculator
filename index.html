@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bitcoin Freedom Year Calculator | The Wealth Society</title>
+<meta name="description" content="Free calculator: find the first year your bitcoin could pay your yearly income by borrowing against it instead of selling it, stress-tested through modeled crashes. Education only.">
+<meta property="og:title" content="What year can bitcoin start paying your bills?">
+<meta property="og:description" content="Free calculator: find the first year your bitcoin could pay your yearly income by borrowing against it instead of selling it, stress-tested through modeled crashes. Education only.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0B2337">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%238AF8FA'/%3E%3Ctext x='32' y='45' font-size='38' font-family='Arial Black,Arial' font-weight='900' text-anchor='middle' fill='%230B2337'%3EW%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&display=swap">
+<style>
+  :root{
+    --bg:#0B2337;            /* page ground */
+    --panel:#11324D;         /* TWS brand navy */
+    --panel2:#173E5E;        /* raised surface */
+    --edge:rgba(138,248,250,.16);
+    --edge-soft:rgba(138,248,250,.09);
+    --ink:#EAF4F8;
+    --muted:#9DB4C6;
+    --faint:#86A2B9;
+    --accent:#8AF8FA;        /* TWS brand cyan */
+    --accent-ink:#0B2337;    /* text on cyan */
+    --ser-stack:#00A5AE;     /* chart: your stack */
+    --ser-debt:#D07E1F;      /* chart: total owed */
+    --crash:#F26D6D;         /* status: crash years */
+    --good:#4CC38A;
+    --display:'Archivo Black','Arial Black',Arial,sans-serif;
+    --body:'Archivo',Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{color-scheme:dark}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  ::selection{background:rgba(138,248,250,.28)}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+  /* ---------- header ---------- */
+  header{border-bottom:1px solid var(--edge-soft);background:linear-gradient(180deg,#0D2A42,#0B2337)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand-mark{width:34px;height:34px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--display);font-size:17px}
+  .brand-name{font-family:var(--display);font-size:15px;letter-spacing:.14em}
+  .brand-name small{display:block;font-family:var(--body);font-weight:600;font-size:10.5px;letter-spacing:.22em;color:var(--muted)}
+  .price-chip{text-align:right}
+  .price-chip .lbl{font-size:10.5px;font-weight:700;letter-spacing:.18em;color:var(--muted)}
+  .price-chip .val{font-family:var(--display);font-size:21px;color:var(--accent);font-variant-numeric:tabular-nums}
+  .price-chip .src{font-size:11px;color:var(--faint)}
+
+  .hero{padding:34px 0 26px}
+  .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.24em;color:var(--accent);margin-bottom:10px}
+  h1{font-family:var(--display);font-size:clamp(30px,4.6vw,52px);line-height:1.04;margin:0 0 14px;text-wrap:balance;letter-spacing:.01em}
+  h1 .hl{color:var(--accent)}
+  .hero p{max-width:62ch;color:var(--muted);font-size:17px;margin:0}
+
+  /* ---------- tabs ---------- */
+  nav.tabs{display:flex;gap:8px;padding:18px 0 0;flex-wrap:wrap}
+  .tab{appearance:none;border:1px solid var(--edge);background:transparent;color:var(--muted);font-family:var(--body);font-weight:700;font-size:13px;letter-spacing:.1em;padding:11px 18px;border-radius:8px 8px 0 0;border-bottom:none;cursor:pointer}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  main{border-top:1px solid var(--edge);padding:28px 0 10px}
+  section.pane[hidden]{display:none}
+
+  /* ---------- calculator layout ---------- */
+  .calc-grid{display:grid;grid-template-columns:370px 1fr;gap:22px;align-items:start}
+  @media(max-width:920px){.calc-grid{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--edge-soft);border-radius:12px;padding:20px}
+  .card h3{font-family:var(--display);font-size:13px;letter-spacing:.16em;margin:0 0 4px;color:var(--accent)}
+  .card .sub{font-size:13px;color:var(--muted);margin:0 0 16px}
+
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink);margin-bottom:6px;text-transform:uppercase}
+  .field .hint{font-size:12.5px;color:var(--muted);margin-top:5px}
+  .money{position:relative}
+  .money .sym{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint);font-weight:600}
+  input[type=text],input[type=number],select{width:100%;background:#0C2739;border:1px solid var(--edge);border-radius:8px;color:var(--ink);font-family:var(--body);font-size:16px;font-variant-numeric:tabular-nums;padding:11px 12px}
+  .money input{padding-left:26px}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:34px;background:transparent;cursor:pointer}
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:#0C2739;border:1px solid var(--edge)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);border:3px solid #0B2337;margin-top:-11px}
+  input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:#0C2739;border:1px solid var(--edge)}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid #0B2337}
+  @media(pointer:coarse){input[type=range]{height:44px}}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;border:1px solid var(--edge);background:transparent;color:var(--muted);font-weight:700;font-size:12.5px;padding:9px 6px;border-radius:8px;cursor:pointer;font-family:var(--body)}
+  .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .range-row{display:flex;align-items:center;gap:12px}
+  .range-row output{font-family:var(--display);font-size:19px;color:var(--accent);min-width:58px;text-align:right;font-variant-numeric:tabular-nums}
+  .btn{appearance:none;border:none;border-radius:9px;font-family:var(--body);font-weight:700;font-size:14px;letter-spacing:.04em;padding:12px 18px;cursor:pointer}
+  .btn-ghost{background:transparent;border:1px solid var(--edge);color:var(--accent)}
+  .btn-ghost:hover{border-color:var(--accent)}
+  .btn-solid{background:var(--accent);color:var(--accent-ink)}
+  details.assump{border:1px solid var(--edge-soft);border-radius:10px;padding:0 14px;background:#0C2739}
+  details.assump summary{cursor:pointer;font-weight:700;font-size:12.5px;letter-spacing:.08em;padding:12px 0;color:var(--muted);text-transform:uppercase}
+  details.assump[open] summary{color:var(--ink)}
+  details.assump .inner{padding:2px 0 14px}
+  .crash-legend{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;color:var(--muted);margin-top:10px}
+  .crash-legend b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  /* ---------- results ---------- */
+  .result-hero{background:linear-gradient(135deg,#123A58,#11324D 55%);border:1px solid var(--edge);border-radius:12px;padding:26px 26px 22px;margin-bottom:16px}
+  .result-hero .eyebrow{margin-bottom:6px}
+  .freedom-year{font-family:var(--display);font-size:clamp(46px,7vw,84px);line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+  .freedom-year.nofit{color:var(--crash);font-size:clamp(28px,4vw,44px)}
+  .result-hero .story{color:var(--ink);max-width:64ch;font-size:16.5px;margin:12px 0 0}
+  .result-hero .story b{color:var(--accent)}
+  .fy-flag{color:#F0B24C;font-size:14px;font-weight:600;margin-top:10px;max-width:64ch}
+  .fy-stamp{font-size:12px;color:var(--muted);margin-top:12px;letter-spacing:.03em}
+  @media(max-width:920px){.result-hero{margin-bottom:14px}}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px;margin-bottom:16px}
+  .tile{background:var(--panel);border:1px solid var(--edge-soft);border-radius:10px;padding:14px 16px}
+  .tile .t-lbl{font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .tile .t-val{font-family:var(--display);font-size:23px;margin-top:6px;font-variant-numeric:tabular-nums}
+  .tile .t-note{font-size:11.5px;color:var(--faint);margin-top:4px}
+  .tile.ok .t-val{color:var(--good)}
+  .tile.warn .t-val{color:var(--crash)}
+
+  .chart-card{background:var(--panel);border:1px solid var(--edge-soft);border-radius:12px;padding:18px 18px 8px;position:relative}
+  .chart-card h4{font-family:var(--display);font-size:12px;letter-spacing:.14em;color:var(--muted);margin:0 0 10px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .legend .key{display:inline-block;width:16px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+  svg text{font-family:var(--body)}
+  #tooltip{position:absolute;pointer-events:none;background:#0A1E2F;border:1px solid var(--edge);border-radius:8px;padding:8px 11px;font-size:12.5px;line-height:1.5;color:var(--ink);display:none;z-index:5;min-width:150px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+  #tooltip .tt-y{font-family:var(--display);color:var(--accent);font-size:13px;margin-bottom:2px}
+  #tooltip .row{display:flex;justify-content:space-between;gap:14px;font-variant-numeric:tabular-nums}
+  #tooltip .row span:first-child{color:var(--muted)}
+
+  .fineprint{font-size:12px;color:var(--faint);margin:14px 2px 0}
+
+  /* ---------- prose panes ---------- */
+  .prose{max-width:760px}
+  .prose h2{font-family:var(--display);font-size:24px;line-height:1.2;margin:34px 0 12px;text-wrap:balance}
+  .prose h2:first-child{margin-top:0}
+  .prose p,.prose li{color:var(--muted);font-size:16.5px}
+  .prose p b,.prose li b{color:var(--ink)}
+  .prose ul{padding-left:22px}
+  .pull{border-left:4px solid var(--accent);background:var(--panel);border-radius:0 10px 10px 0;padding:16px 20px;margin:20px 0;font-family:var(--display);font-size:17px;line-height:1.45;color:var(--ink)}
+  .mini-table{width:100%;border-collapse:collapse;font-size:14.5px;margin:14px 0}
+  .mini-table th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--edge)}
+  .mini-table td{padding:9px 10px;border-bottom:1px solid var(--edge-soft);color:var(--ink);font-variant-numeric:tabular-nums}
+  .warn-box{border:1px solid rgba(242,109,109,.45);background:rgba(242,109,109,.08);border-radius:10px;padding:16px 20px;margin:22px 0}
+  .warn-box h4{margin:0 0 8px;font-family:var(--display);font-size:13px;letter-spacing:.12em;color:var(--crash)}
+  .warn-box p,.warn-box li{font-size:14.5px}
+
+  /* ---------- forecasts ---------- */
+  .models{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:18px}
+  .model-card{background:var(--panel);border:1px solid var(--edge-soft);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:10px}
+  .model-card h3{font-family:var(--display);font-size:16px;margin:0;color:var(--ink)}
+  .model-card .who{font-size:12.5px;color:var(--accent);font-weight:700;letter-spacing:.06em}
+  .model-card p{font-size:14.5px;color:var(--muted);margin:0}
+  .model-nums{display:flex;gap:8px;flex-wrap:wrap}
+  .model-nums .chip{background:#0C2739;border:1px solid var(--edge-soft);border-radius:8px;padding:7px 12px;font-size:12.5px;color:var(--muted)}
+  .model-nums .chip b{display:block;font-family:var(--display);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .model-card .must{font-size:13.5px}
+  .model-card .must b{color:var(--ink)}
+  .model-card a{color:var(--accent);font-size:12.5px;word-break:break-all}
+  #pane-models.prose{max-width:none}
+  #pane-models > h2,#pane-models > p,#pane-models > .pull{max-width:760px}
+
+  /* ---------- year-by-year ---------- */
+  .yb-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .yb-chips{display:flex;gap:8px;flex-wrap:wrap}
+  .yb-chips .chip{background:var(--panel);border:1px solid var(--edge-soft);border-radius:8px;padding:7px 12px;font-size:12.5px;color:var(--muted)}
+  .yb-chips .chip b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .table-scroll{overflow-x:auto;border:1px solid var(--edge-soft);border-radius:12px}
+  table.yb{width:100%;border-collapse:collapse;font-size:14px;min-width:880px}
+  table.yb th{position:sticky;top:0;background:var(--panel2);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);text-align:right;padding:11px 12px;border-bottom:1px solid var(--edge)}
+  table.yb th:nth-child(1),table.yb th:nth-child(2),table.yb td:nth-child(1),table.yb td:nth-child(2){text-align:left}
+  table.yb td{padding:10px 12px;border-bottom:1px solid var(--edge-soft);text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--panel)}
+  table.yb tr.crash td{background:rgba(242,109,109,.10)}
+  table.yb tr.startyr td{background:rgba(138,248,250,.08)}
+  table.yb th:first-child,table.yb td:first-child{position:sticky;left:0;z-index:2;background:var(--panel)}
+  table.yb th:first-child{background:var(--panel2);z-index:3}
+  table.yb tr.crash td:first-child{background:#283850}
+  table.yb tr.startyr td:first-child{background:#1B425B}
+  .swipe-hint{display:none;font-size:12.5px;color:var(--muted);margin:0 0 8px}
+  .chart-tip{display:none;font-size:12px;color:var(--muted);margin:8px 0 4px}
+  @media(max-width:920px){.swipe-hint,.chart-tip{display:block}}
+  table.yb td .phase{font-size:12px;font-weight:700;letter-spacing:.05em}
+  .ph-crash{color:var(--crash)} .ph-boom{color:var(--accent)} .ph-norm{color:var(--muted)} .ph-start{color:var(--good)}
+
+  /* ---------- footer ---------- */
+  .cta-band{margin:40px 0 24px;background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:26px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .cta-band h3{font-family:var(--display);font-size:19px;margin:0 0 6px}
+  .cta-band p{color:var(--muted);margin:0;max-width:56ch;font-size:14.5px}
+  footer{border-top:1px solid var(--edge-soft);padding:20px 0 34px;font-size:12px;color:var(--faint)}
+  footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">W</div>
+        <div class="brand-name">THE WEALTH SOCIETY<small>FREE TOOL</small></div>
+      </div>
+      <div class="price-chip">
+        <div class="lbl">BITCOIN PRICE USED</div>
+        <div class="val" id="chipPrice">$82,314</div>
+        <div class="src" id="chipSrc">saved snapshot (Oct 2026) — edit below</div>
+      </div>
+    </div>
+    <div class="hero">
+      <div class="eyebrow">KEEP THE STACK. BORROW THE LIFESTYLE.</div>
+      <h1>WHAT YEAR CAN BITCOIN START <span class="hl">PAYING YOUR BILLS?</span></h1>
+      <p>This tool finds your <b>Freedom Year</b> — the first year your Bitcoin could cover your full yearly income by borrowing against it instead of selling it, and still survive every modeled crash between then and 2040 without crossing the safety line you set.</p>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-pane="calc">CALCULATOR</button>
+      <button class="tab" role="tab" aria-selected="false" data-pane="how">HOW IT WORKS</button>
+      <button class="tab" role="tab" aria-selected="false" data-pane="models">THE FORECASTS</button>
+      <button class="tab" role="tab" aria-selected="false" data-pane="years">YEAR-BY-YEAR</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- ================= CALCULATOR ================= -->
+    <section class="pane" id="pane-calc">
+      <div class="calc-grid">
+        <div id="colInputs">
+          <div class="card" style="margin-bottom:14px">
+            <h3>YOUR NUMBERS</h3>
+            <p class="sub">Four questions. Plain answers. The model does the rest.</p>
+
+            <div class="field">
+              <label for="inPrice">Today's Bitcoin price</label>
+              <div class="money"><span class="sym">$</span><input type="text" id="inPrice" inputmode="decimal" value="82,314"></div>
+              <div class="hint" id="priceHint">We try to fetch the live price automatically. If it can't load, type today's price here (the built-in snapshot is from Oct 2026).</div>
+            </div>
+
+            <div class="field">
+              <label for="inStack">Your Bitcoin stack today (in dollars)</label>
+              <div class="money"><span class="sym">$</span><input type="text" id="inStack" inputmode="decimal" placeholder="e.g. 900,000"></div>
+              <div class="hint" id="btcEquiv">≈ — BTC at today's price</div>
+            </div>
+
+            <div class="field">
+              <label for="inAdd">Still stacking? Amount you add per year <span style="color:var(--faint)">(optional)</span></label>
+              <div class="money"><span class="sym">$</span><input type="text" id="inAdd" inputmode="decimal" value="0"></div>
+            </div>
+            <div class="field">
+              <label for="inAddYrs">…for how many years?</label>
+              <input type="number" id="inAddYrs" min="0" max="14" step="1" value="0">
+              <div class="hint">Contributions stop once your Freedom Year income starts.</div>
+            </div>
+
+            <div class="field">
+              <label for="inSpend">Yearly income you want in retirement</label>
+              <div class="money"><span class="sym">$</span><input type="text" id="inSpend" inputmode="decimal" placeholder="e.g. 180,000"></div>
+              <div class="seg" style="margin-top:8px" id="segInfl">
+                <button type="button" data-v="adj" aria-pressed="true">GROWS 3%/YR WITH INFLATION</button>
+                <button type="button" data-v="flat" aria-pressed="false">STAYS FLAT</button>
+              </div>
+            </div>
+
+            <button class="btn btn-ghost" id="btnExample" style="width:100%">LOAD THE $900K EXAMPLE</button>
+          </div>
+
+          <div class="card" style="margin-bottom:14px">
+            <h3>THE GROWTH FORECAST</h3>
+            <p class="sub">Whose Bitcoin forecast do you want to test? Details on every model in <b style="color:var(--ink)">The Forecasts</b> tab. Don't just pick the biggest number.</p>
+            <div class="field">
+              <select id="inModel">
+                <option value="saylor" selected>Saylor's Bitcoin24 (declining growth curve)</option>
+                <option value="bitwise">Bitwise (28.3%/yr)</option>
+                <option value="powerlaw">Power Law (time-based curve)</option>
+                <option value="vaneck">VanEck (adoption-based)</option>
+                <option value="custom">Your own yearly growth %</option>
+              </select>
+            </div>
+            <div class="field" id="scenWrap">
+              <label>How optimistic?</label>
+              <div class="seg" id="segScen">
+                <button type="button" data-v="bear" aria-pressed="false">CAUTIOUS</button>
+                <button type="button" data-v="base" aria-pressed="true">MIDDLE</button>
+                <button type="button" data-v="bull" aria-pressed="false">AGGRESSIVE</button>
+              </div>
+              <div class="hint" id="scenHint"></div>
+            </div>
+            <div class="field" id="customWrap" hidden>
+              <label for="inCagr">Your yearly growth assumption (%)</label>
+              <input type="number" id="inCagr" min="0" max="100" step="1" value="25">
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>YOUR SAFETY RULES</h3>
+            <p class="sub">The borrowing limits the whole plan must live inside — even in a crash.</p>
+
+            <div class="field">
+              <label for="inLtv">Your safety line (max borrowing level)</label>
+              <div class="range-row">
+                <input type="range" id="inLtv" min="10" max="50" step="1" value="40">
+                <output id="outLtv">40%</output>
+              </div>
+              <div class="hint">The most you'll ever let your total debt reach compared to what your stack is worth (called <b style="color:var(--ink)">LTV</b> — loan-to-value). The plan fails any year it would cross this line, including crash years. This is your rule, not a lender's limit.</div>
+            </div>
+
+            <div class="field">
+              <label for="inRate">Loan interest rate</label>
+              <div class="range-row">
+                <input type="range" id="inRate" min="3" max="15" step="0.5" value="8">
+                <output id="outRate">8%</output>
+              </div>
+              <div class="hint">The yearly rate on Bitcoin-backed loans. In 2026 most fixed-rate lenders charge about 8–12%. Floating-rate on-chain loans (like Coinbase's) can run 4–6%, but that rate can jump and those loans carry extra risks. The model holds your rate constant for the whole plan. Fees and lender-specific costs aren't included.</div>
+            </div>
+
+            <details class="assump">
+              <summary>▸ The built-in crash test</summary>
+              <div class="inner">
+                <p class="sub" style="margin-bottom:8px">Bitcoin doesn't go up in a straight line, so the model forces it through a boom-and-crash cycle every 4 years. These are stress assumptions, not predictions of when crashes happen — and even the harsher setting (−60%) is milder than Bitcoin's worst real drawdowns (2018 was −84% peak-to-trough).</p>
+                <div class="seg" id="segStress">
+                  <button type="button" data-v="milder" aria-pressed="false">MILDER</button>
+                  <button type="button" data-v="standard" aria-pressed="true">STANDARD</button>
+                  <button type="button" data-v="harsher" aria-pressed="false">HARSHER</button>
+                </div>
+                <div class="crash-legend" id="crashLegend"></div>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div id="colResults">
+          <div class="result-hero" id="resultHero">
+            <div class="eyebrow">YOUR FREEDOM YEAR</div>
+            <div class="freedom-year" id="fyBig">—</div>
+            <p class="story" id="fyStory">Enter your stack size and the yearly income you want, and we'll find the first year the plan holds.</p>
+            <div id="fyFlags"></div>
+            <div class="fy-stamp" id="fyStamp"></div>
+          </div>
+
+          <div class="tiles" id="tiles"></div>
+
+          <div class="chart-card">
+            <h4>YOUR STACK VS. WHAT YOU'D OWE, THROUGH 2040</h4>
+            <div class="legend">
+              <span><span class="key" style="background:var(--ser-stack)"></span>Your stack's value</span>
+              <span><span class="key" style="background:var(--ser-debt)"></span>Total owed</span>
+              <span><span class="key" style="background:rgba(242,109,109,.35);height:10px"></span>Crash year</span>
+            </div>
+            <div id="chartA"></div>
+            <h4 style="margin-top:14px">BORROWING LEVEL EACH YEAR VS. YOUR SAFETY LINE</h4>
+            <div class="legend">
+              <span><span class="key" style="background:var(--ser-debt);height:8px"></span>Normal year</span>
+              <span><span class="key" style="background:var(--crash);height:8px"></span>Crash year</span>
+              <span><span class="key" style="background:transparent;border-top:2px dashed var(--crash)"></span>Your safety line</span>
+            </div>
+            <div id="chartB"></div>
+            <p class="chart-tip">Tap the charts for any year's numbers — or open the Year-by-Year tab for the full table.</p>
+            <div id="tooltip"></div>
+          </div>
+
+          <p class="fineprint">Modeled scenario only — every line above depends on the forecast, crash, and interest assumptions you picked. This is education, not a recommendation to borrow, and not financial, tax, lending, or legal advice.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HOW IT WORKS ================= -->
+    <section class="pane prose" id="pane-how" hidden>
+      <h2>The old retirement plan makes you sell your best asset. This one tests keeping it.</h2>
+      <p>The usual retirement question is "how big does my pile need to be before I can start selling pieces of it?" Every year you sell, your pile shrinks, and your best-performing asset stops working for you.</p>
+      <p>This calculator tests a different structure: <b>keep the whole Bitcoin stack, and borrow against it each year to create your income.</b> The stack keeps growing. Nothing gets sold. But — and this is the part most people skip — every loan is a real debt that stacks up year after year. So the honest question isn't "does one loan work?" It's:</p>
+      <div class="pull">Does the stack grow faster than the debt pile — even when Bitcoin crashes 50% along the way?</div>
+      <p>That's the only question this tool answers.</p>
+
+      <h2>What happens each year, in plain English</h2>
+      <p>Once your Freedom Year starts, the model assumes you take out one new loan every year. That new loan does 3 jobs:</p>
+      <ul>
+        <li><b>Pays off last year's loan</b> completely (a refinance).</li>
+        <li><b>Sets aside 12 months of interest</b> up front, so the loan services itself.</li>
+        <li><b>Hands you your yearly income</b> in cash.</li>
+      </ul>
+      <p>Small worked example: you want $100K of income and the rate is 8%. The model borrows about $108.7K — $100K goes to you, $8.7K sits in reserve to cover the year's interest. Next year's loan pays that whole balance off and the cycle repeats, bigger each time.</p>
+      <p>That's why the debt line on the chart only goes up. The model never pays the debt down — it tests whether the stack can outgrow it anyway. It also quietly assumes a lender will always be there to refinance you at the same rate, with no fees. Real life is messier than that.</p>
+
+      <h2>The safety line (LTV) is the whole game</h2>
+      <p><b>LTV = what you owe ÷ what your stack is worth.</b> Owe $200K against a $1M stack and you're at 20% LTV.</p>
+      <p>Here's why it's dangerous to ignore: in a crash, your debt doesn't fall with the price. If Bitcoin drops 50%, a comfortable 20% LTV instantly becomes 40% — without you borrowing another dollar.</p>
+      <div class="pull">The stack halves. The debt doesn't. Your borrowing level doubles overnight.</div>
+      <p>So you set a safety line — the highest LTV you'll tolerate <b>anywhere</b> in the plan, crash years included. The calculator only calls a year your Freedom Year if the full plan stays under that line all the way to 2040. Your safety line is a planning rule you choose. It is <b>not</b> the level where a lender would liquidate you, and it is not a recommendation.</p>
+
+      <h2>The built-in crash test</h2>
+      <p>A smooth growth forecast alone would make any borrowing plan look brilliant. So after applying the forecast you picked, the model forces the price through a 4-year boom-and-crash cycle:</p>
+      <table class="mini-table">
+        <tr><th>Phase</th><th>What the model does</th></tr>
+        <tr><td>Climb</td><td>Price follows the forecast's trend line</td></tr>
+        <tr><td>Boom</td><td>Price overshoots the trend by 60% — the blow-off top</td></tr>
+        <tr><td>Crash</td><td>Price falls 50% from the top (then 45%, then 40% in later cycles)</td></tr>
+        <tr><td>Recover</td><td>Price returns to the trend line</td></tr>
+      </table>
+      <p>The crash years are where plans die — that's exactly when your LTV spikes. The calendar placement and depths are <b>modeling assumptions</b>, not predictions of when real crashes will happen. You can make the test milder or harsher in the crash-test panel.</p>
+
+      <h2>Why "wait until" is the question we model</h2>
+      <p>We deliberately model one question: <b>what's the earliest year your full target income fits inside your safety line?</b> If the answer is 2028, that means starting in 2027 would have pushed you over the line in some crash year. Waiting longer than your Freedom Year generally just adds cushion. One more honesty rule: a start year only counts as fitting if at least one modeled crash still gets to test it — a plan that "fits" in 2040 with no crash left to face hasn't really been tested, so we don't call it a pass. If the answer is "never by 2040," the honest fixes are a bigger stack, a smaller income target, more years of stacking, or a more conservative read on what that tells you — not a bigger safety line.</p>
+
+      <div class="warn-box">
+        <h4>WHAT THIS TOOL CANNOT TELL YOU</h4>
+        <p>This models the Bitcoin math only. It does not build the system around the Bitcoin, and it knows nothing about:</p>
+        <ul>
+          <li><b>Which lender to use</b> — custody, rehypothecation, margin-call rules, liquidation triggers, and contract terms vary wildly and can break a plan the math says works.</li>
+          <li><b>Refinancing risk</b> — the model assumes credit is always available at your rate. In a deep crash, it may not be.</li>
+          <li><b>Intra-year lows</b> — the model checks your borrowing level once per year, at year-end prices. Real crashes bottom mid-year, far below year-end (2018: −84%, 2022: −77% peak-to-trough), and margin calls happen the day a line is crossed — not at year-end.</li>
+          <li><b>Taxes</b> — a genuine loan is generally not a taxable sale, but forced liquidations, canceled debt, and moving collateral can create tax events. Talk to a professional.</li>
+          <li><b>Your full picture</b> — income, cash reserves, other assets, family obligations, and your ability to act calmly in a 50% drawdown.</li>
+        </ul>
+        <p style="margin-bottom:0"><b>Borrowing against Bitcoin can end in liquidation and loss of your collateral.</b> Educational scenario planning only — not financial, investment, tax, legal, or lending advice.</p>
+      </div>
+    </section>
+
+    <!-- ================= FORECASTS ================= -->
+    <section class="pane prose" id="pane-models" hidden>
+      <h2>Nobody knows Bitcoin's future price — including these models.</h2>
+      <p>Each forecast below is a published, sourced way of guessing. They use different methods and different assumptions, which is exactly why we show you all of them. Your Freedom Year moves a lot depending on which one you pick — that sensitivity is the lesson.</p>
+      <div class="pull">Don't pick the model with the biggest number. Pick the one whose story you'd still believe in a −50% year.</div>
+      <p style="font-size:13.5px;color:var(--faint)">Every model is re-anchored to the Bitcoin price you enter, run through 2040, and then stress-tested with this calculator's own separate crash cycle. Source figures verified Oct 2026; sources can revise after that.</p>
+
+      <div class="models" style="grid-column:1/-1">
+        <div class="model-card">
+          <h3>SAYLOR'S BITCOIN24</h3>
+          <div class="who">Michael Saylor's team (Strategy) · published 2024</div>
+          <p>Growth starts hot and cools every year — it doesn't assume one flat rate. The middle case starts around 50%/yr and glides down toward 20%/yr.</p>
+          <div class="model-nums">
+            <span class="chip">CAUTIOUS<b>25% → 18%/yr</b></span>
+            <span class="chip">MIDDLE<b>50% → 20%/yr</b></span>
+            <span class="chip">AGGRESSIVE<b>75% → 25%/yr</b></span>
+          </div>
+          <p class="must"><b>What has to be true:</b> Bitcoin keeps getting adopted as a core asset fast enough to hold high-teens/20s growth for two decades. The source model ignores crashes entirely — this calculator adds its own crash test on top.</p>
+          <a href="https://github.com/bitcoin-model/bitcoin_model" target="_blank" rel="noopener">Source: Bitcoin24 model (GitHub)</a>
+        </div>
+
+        <div class="model-card">
+          <h3>BITWISE</h3>
+          <div class="who">Bitwise Asset Management · published Aug 21, 2025</div>
+          <p>An institutional "capital market assumption": their base case is 28.3% per year, pointing at roughly $1.3M per BTC by 2035, alongside a bear case of about $88K in 2035 (roughly −2%/yr, a lower price than when they published) and a bull case near $3M (39.4%/yr), so the scenario picker works here too.</p>
+          <div class="model-nums">
+            <span class="chip">CAUTIOUS<b>−2%/yr</b></span>
+            <span class="chip">MIDDLE<b>28.3%/yr · $1.3M by 2035</b></span>
+            <span class="chip">AGGRESSIVE<b>39.4%/yr</b></span>
+          </div>
+          <p class="must"><b>What has to be true (middle case):</b> institutions keep allocating 1–5% of portfolios to Bitcoin and returns hold near 28%/yr. Their forecast stops at 2035 — we extend each rate to 2040 as our own assumption, not theirs.</p>
+          <a href="https://bitwiseinvestments.com/crypto-market-insights/bitcoin-long-term-capital-market-assumptions-2025" target="_blank" rel="noopener">Source: Bitwise LTCMA 2025</a>
+        </div>
+
+        <div class="model-card">
+          <h3>POWER LAW</h3>
+          <div class="who">Giovanni Santostasi (physicist) · 2024 write-up</div>
+          <p>A math-only model: Bitcoin's price has tracked a smooth curve based purely on time since it launched in Jan 2009 (price ≈ time^5.8). It fits 15+ years of history remarkably well, and its growth naturally slows every year.</p>
+          <div class="model-nums">
+            <span class="chip">METHOD<b>time^5.8</b></span>
+            <span class="chip">HISTORICAL FIT<b>R² ≈ 0.95</b></span>
+            <span class="chip">USED HERE<b>through 2040</b></span>
+          </div>
+          <p class="must"><b>What has to be true:</b> the historical pattern keeps holding. Critics call it curve-fitting, and a pattern that fit the past is not a law of nature, so we only run it through 2040. No scenario picker — the curve is the curve.</p>
+          <a href="https://giovannisantostasi.medium.com/the-bitcoin-power-law-theory-962dfaf99ee9" target="_blank" rel="noopener">Source: The Bitcoin Power Law Theory</a>
+        </div>
+
+        <div class="model-card">
+          <h3>VANECK</h3>
+          <div class="who">Matthew Sigel, VanEck · published Jan 8, 2026</div>
+          <p>An adoption story: what's Bitcoin worth if it captures a slice of global trade, savings, and central-bank reserves by 2050? The answer ranges from "barely grows" to "life-changing" — the widest spread of any model here.</p>
+          <div class="model-nums">
+            <span class="chip">CAUTIOUS<b>2%/yr</b></span>
+            <span class="chip">MIDDLE<b>15%/yr</b></span>
+            <span class="chip">AGGRESSIVE<b>29%/yr</b></span>
+          </div>
+          <p class="must"><b>What has to be true (middle case, about $2.9M by 2050):</b> Bitcoin settles 5–10% of global trade and makes up about 2.5% of central-bank balance sheets. Their horizon is 2050; we only use it through 2040.</p>
+          <a href="https://www.vaneck.com/us/en/blogs/digital-assets/matthew-sigel-vaneck-bitcoin-long-term-capital-market-assumptions/" target="_blank" rel="noopener">Source: VanEck long-term assumptions</a>
+        </div>
+
+        <div class="model-card">
+          <h3>YOUR OWN NUMBER</h3>
+          <div class="who">You · no external source</div>
+          <p>Skip the institutions and type your own flat yearly growth rate. Useful for one thing above all: finding the <b style="color:var(--ink)">lowest</b> growth rate at which your plan still works. That number tells you how much optimism your retirement actually depends on.</p>
+          <div class="model-nums">
+            <span class="chip">DEFAULT<b>25%/yr</b></span>
+            <span class="chip">SOURCE<b>Your conviction</b></span>
+          </div>
+          <p class="must"><b>What has to be true:</b> whatever you typed. Same crash test still applies.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= YEAR BY YEAR ================= -->
+    <section class="pane" id="pane-years" hidden>
+      <div class="yb-head">
+        <div class="yb-chips" id="ybChips"></div>
+        <button class="btn btn-ghost" id="btnCopy">COPY TABLE (FOR EXCEL)</button>
+      </div>
+      <p class="swipe-hint">Swipe the table sideways for borrowing level and cushion →</p>
+      <div class="table-scroll">
+        <table class="yb" id="ybTable"></table>
+      </div>
+      <p class="fineprint">Crash rows are shaded red. "Total owed" includes every year's income plus the pre-paid interest reserves, refinanced forward. Modeled scenario only.</p>
+    </section>
+
+    <div class="cta-band">
+      <div>
+        <h3>GOT YOUR YEAR?</h3>
+        <p>Screenshot your result. Wealth Society members: bring it to the next live call and we'll pressure-test the assumption most likely to break it, together, as education, before you ever talk to a lender. Not a member? Follow along for the bitcoin version of every play the rich use.</p>
+      </div>
+      <a class="btn btn-solid" href="https://www.instagram.com/thebriandecker/" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW @THEBRIANDECKER</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>THE WEALTH SOCIETY · Educational scenario planning only. Not financial, investment, tax, legal, or lending advice. Borrowing against Bitcoin carries real risks, including liquidation and loss of collateral.</div>
+    <div>Freedom Year Calculator v2 · Forecast sources verified Oct 2026 · Model structure adapted from Mark Moss's "Retire Off Bitcoin" calculator</div>
+  </div>
+</footer>
+
+<script>
+'use strict';
+/* ============================================================
+   THE MODEL
+   Trend price path from the chosen forecast, then a 4-year
+   boom/crash overlay, then an annual credit roll:
+   newBalance = (oldBalance + income) / (1 - rate)
+   Freedom Year = earliest start year where LTV never crosses
+   the safety line through 2040.
+   ============================================================ */
+const HORIZON = 2040;
+const CURRENT_YEAR = Math.min(new Date().getFullYear(), HORIZON - 2);
+const INFL = 0.03;
+const BOOM_MULT = 1.6;
+const CRASH_SETS = { milder:[0.40,0.35,0.30], standard:[0.50,0.45,0.40], harsher:[0.60,0.55,0.50] };
+
+const MODELS = {
+  saylor:{
+    scen:{ bear:{init:25,red:0.5,term:18}, base:{init:50,red:2.5,term:20}, bull:{init:75,red:5,term:25} },
+    hint:{ bear:'Growth starts at 25%/yr, cooling to 18%/yr.', base:'Growth starts around 50%/yr, cooling to 20%/yr.', bull:'Growth starts at 75%/yr, cooling to 25%/yr.' } },
+  bitwise:{ scen:{ bear:{flat:-2}, base:{flat:28.3}, bull:{flat:39.4} },
+    hint:{ bear:'Bitwise bear case: about −2%/yr (~$88K by 2035).', base:'Bitwise base case: 28.3%/yr — their published headline.', bull:'Bitwise bull case: 39.4%/yr.' } },
+  vaneck:{ scen:{ bear:{flat:2}, base:{flat:15}, bull:{flat:29} },
+    hint:{ bear:'VanEck cautious case: 2%/yr.', base:'VanEck middle case: 15%/yr.', bull:'VanEck aggressive case: 29%/yr.' } },
+  powerlaw:{}, custom:{}
+};
+
+const GENESIS = Date.UTC(2009,0,3);
+function daysSinceGenesis(year){ return (Date.UTC(year,6,1) - GENESIS) / 86400000; }
+
+function growthRate(model, scen, customPct, year){
+  // rate applied for growth INTO `year`
+  if (model === 'saylor'){
+    // Bitcoin24's declining curve is calendar-anchored (source base 2024, re-based here to 2025 after re-anchoring to today's price)
+    const s = MODELS.saylor.scen[scen];
+    return Math.max(s.term, s.init - s.red * (year - 2025)) / 100;
+  }
+  if (model === 'bitwise') return MODELS.bitwise.scen[scen].flat / 100;
+  if (model === 'vaneck')  return MODELS.vaneck.scen[scen].flat / 100;
+  if (model === 'custom')  return customPct / 100;
+  return 0; // powerlaw handled by ratio
+}
+
+function buildPricePath(spot, model, scen, customPct, crashSet){
+  const years = [], trend = [], price = [], phase = [], crashPct = [];
+  let t = spot, crashIdx = 0;
+  for (let y = CURRENT_YEAR; y <= HORIZON; y++){
+    if (y > CURRENT_YEAR){
+      if (model === 'powerlaw'){
+        t = spot * Math.pow(daysSinceGenesis(y)/daysSinceGenesis(CURRENT_YEAR), 5.8);
+      } else {
+        t = t * (1 + growthRate(model, scen, customPct, y));
+      }
+    }
+    years.push(y); trend.push(t);
+    const k = (y - CURRENT_YEAR) % 4; // 1 recover, 2 climb, 3 boom, 0 crash
+    let ph = 'trend', p = t, cp = 0;
+    if (y === CURRENT_YEAR){ ph = 'now'; }
+    else if (k === 3){ ph = 'boom'; p = t * BOOM_MULT; }
+    else if (k === 0){
+      ph = 'crash';
+      cp = crashSet[Math.min(crashIdx, crashSet.length - 1)]; crashIdx++;
+      p = price[price.length - 1] * (1 - cp);
+    }
+    price.push(p); phase.push(ph); crashPct.push(cp);
+  }
+  return { years, trend, price, phase, crashPct };
+}
+
+function targetFor(year, spend, adjust){
+  return adjust ? spend * Math.pow(1 + INFL, year - CURRENT_YEAR) : spend;
+}
+
+function simulate(inputs){
+  const { spot, stackUsd, addUsd, addYears, spend, adjust, model, scen, customPct, stress, ceiling, rate } = inputs;
+  const path = buildPricePath(spot, model, scen, customPct, CRASH_SETS[stress]);
+  const n = path.years.length;
+
+  function runFrom(startIdx, contribCap){
+    if (contribCap === undefined) contribCap = startIdx;
+    let btc = stackUsd / spot, bal = 0, peak = 0, feasible = true;
+    const rows = [];
+    for (let i = 0; i < n; i++){
+      const y = path.years[i], p = path.price[i];
+      if (i > 0 && i <= addYears && i < contribCap && addUsd > 0) btc += addUsd / p;
+      const stackVal = btc * p;
+      let draw = 0, ltv = null, reserve = 0;
+      if (i >= startIdx && startIdx > 0){
+        draw = targetFor(y, spend, adjust);
+        const newBal = (bal + draw) / (1 - rate);
+        reserve = newBal * rate;
+        bal = newBal;
+        ltv = bal / stackVal;
+        if (ltv > peak) peak = ltv;
+        if (ltv > ceiling + 1e-9) feasible = false;
+      }
+      rows.push({ y, phase: path.phase[i], crashPct: path.crashPct[i], p, btc, stackVal, draw, reserve, bal: i >= startIdx && startIdx > 0 ? bal : 0, ltv });
+    }
+    return { rows, peak, feasible };
+  }
+
+  for (let s = 1; s < n; s++){
+    // a start year with no modeled crash left to test it is not a real pass
+    const crashesFaced = path.phase.slice(s).filter(ph => ph === 'crash').length;
+    if (crashesFaced === 0) continue;
+    const r = runFrom(s);
+    if (r.feasible) return { found: true, startIdx: s, startYear: path.years[s], crashesFaced, weakTest: crashesFaced === 1, ...r, path };
+  }
+  const fallback = runFrom(0, Infinity); // no draws — but contributions still count in the display
+  return { found: false, startIdx: 0, startYear: null, crashesFaced: 0, weakTest: false, ...fallback, path };
+}
+
+/* ============================================================ UI */
+const $ = id => document.getElementById(id);
+const fmt$ = v => '$' + Math.round(v).toLocaleString('en-US');
+const fmtC = v => v >= 1e9 ? '$' + (v/1e9).toFixed(2) + 'B' : v >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M' : fmt$(v);
+const fmtP = v => (v*100).toFixed(1) + '%';
+const SNAP_DATE = 'Oct 2026';
+const num = s => {
+  const m = String(s).trim().toLowerCase().match(/^\$?\s*([0-9][0-9,]*\.?[0-9]*)\s*([kmb])?/);
+  if (!m) return 0;
+  let v = parseFloat(m[1].replace(/,/g,''));
+  if (!isFinite(v)) return 0;
+  if (m[2] === 'k') v *= 1e3; else if (m[2] === 'm') v *= 1e6; else if (m[2] === 'b') v *= 1e9;
+  return v;
+};
+
+const state = { infl:'adj', scen:'base', stress:'standard' };
+
+function segInit(id, key, cb){
+  const seg = $(id);
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    state[key] = b.dataset.v; cb && cb();
+  });
+}
+segInit('segInfl','infl',recalc);
+segInit('segScen','scen',()=>{ scenHint(); recalc(); });
+segInit('segStress','stress',()=>{ crashLegend(); recalc(); });
+
+function scenHint(){
+  const m = $('inModel').value;
+  $('scenHint').textContent = (MODELS[m] && MODELS[m].hint) ? MODELS[m].hint[state.scen] : '';
+}
+function crashLegend(){
+  const d = CRASH_SETS[state.stress];
+  $('crashLegend').innerHTML =
+    '<span>Boom years</span><b>+60% above trend</b>' +
+    '<span>Crash 1 / 2 / 3</span><b>−' + d.map(x=>Math.round(x*100)+'%').join(' / −') + '</b>' +
+    '<span>Cycle length</span><b>every 4 years</b>';
+}
+
+$('inModel').addEventListener('change', () => {
+  const m = $('inModel').value;
+  $('scenWrap').hidden = !(m === 'saylor' || m === 'vaneck' || m === 'bitwise');
+  $('customWrap').hidden = m !== 'custom';
+  scenHint(); recalc();
+});
+['inPrice','inStack','inAdd','inAddYrs','inSpend','inCagr'].forEach(id => $(id).addEventListener('input', recalc));
+$('inLtv').addEventListener('input', () => { $('outLtv').textContent = $('inLtv').value + '%'; recalc(); });
+$('inRate').addEventListener('input', () => { $('outRate').textContent = $('inRate').value + '%'; recalc(); });
+$('btnExample').addEventListener('click', () => {
+  $('inStack').value = '900,000'; $('inSpend').value = '180,000';
+  $('inAdd').value = '0'; $('inAddYrs').value = '0'; recalc();
+});
+
+// tabs
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t ? 'true' : 'false'));
+  document.querySelectorAll('.pane').forEach(p => p.hidden = p.id !== 'pane-' + t.dataset.pane);
+}));
+
+// live price (best effort: CoinGecko, then Coinbase; honest fallback to the dated snapshot)
+let priceTouched = false;
+$('inPrice').addEventListener('input', () => { priceTouched = true; });
+(function(){
+  const applyLive = (p, src) => {
+    if (priceTouched || document.activeElement === $('inPrice')) return; // never clobber what the user typed
+    $('inPrice').value = Math.round(p).toLocaleString('en-US');
+    $('chipSrc').textContent = 'live · ' + src;
+    $('priceHint').textContent = 'Live price loaded from ' + src + '. You can still type over it.';
+    recalc();
+  };
+  const fail = () => {
+    $('priceHint').textContent = 'Couldn’t load a live price here — the price shown is a saved snapshot from ' + SNAP_DATE + '. Type today’s Bitcoin price for an accurate result.';
+  };
+  try {
+    const ctrl = new AbortController(); setTimeout(()=>ctrl.abort(), 5000);
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', {signal:ctrl.signal})
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { const p = d && d.bitcoin && d.bitcoin.usd; if (p > 0) applyLive(p, 'CoinGecko'); else return Promise.reject(); })
+      .catch(() =>
+        fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot')
+          .then(r => r.ok ? r.json() : Promise.reject())
+          .then(d => { const p = parseFloat(d && d.data && d.data.amount); if (p > 0) applyLive(p, 'Coinbase'); else fail(); })
+          .catch(fail));
+  } catch(e){ fail(); }
+})();
+
+function readInputs(){
+  return {
+    spot: num($('inPrice').value),
+    stackUsd: num($('inStack').value),
+    addUsd: num($('inAdd').value),
+    addYears: Math.max(0, Math.round(num($('inAddYrs').value))),
+    spend: num($('inSpend').value),
+    adjust: state.infl === 'adj',
+    model: $('inModel').value,
+    scen: state.scen,
+    customPct: num($('inCagr').value),
+    stress: state.stress,
+    ceiling: num($('inLtv').value) / 100,
+    rate: num($('inRate').value) / 100
+  };
+}
+
+let lastResult = null, lastInputs = null;
+
+function recalc(){
+  const inp = readInputs();
+  $('chipPrice').textContent = inp.spot > 0 ? fmt$(inp.spot) : '—';
+  const eqEl = $('btcEquiv');
+  if (inp.stackUsd > 0 && inp.stackUsd < 5000 && inp.spot > 0){
+    eqEl.textContent = 'Heads up: that’s ' + fmt$(inp.stackUsd) + ' of Bitcoin (' + (inp.stackUsd / inp.spot).toFixed(4) + ' BTC). This box reads dollars, not BTC count — and typing “250k” works for $250,000.';
+    eqEl.style.color = '#F0B24C';
+  } else {
+    eqEl.textContent = (inp.spot > 0 && inp.stackUsd > 0)
+      ? '≈ ' + (inp.stackUsd / inp.spot).toFixed(3) + ' BTC at today’s price' : '≈ — BTC at today’s price';
+    eqEl.style.color = '';
+  }
+
+  if (!(inp.spot > 0) || !(inp.stackUsd > 0) || !(inp.spend > 0)){
+    $('fyBig').textContent = '—'; $('fyBig').classList.remove('nofit');
+    $('fyStory').textContent = 'Enter your stack size and the yearly income you want, and we’ll find the first year the plan holds.';
+    $('fyFlags').innerHTML = ''; $('fyStamp').textContent = '';
+    $('tiles').innerHTML = ''; $('chartA').innerHTML = ''; $('chartB').innerHTML = '';
+    lastResult = null; lastInputs = null;
+    renderYearTable(null, inp); return;
+  }
+
+  const res = simulate(inp);
+  lastResult = res; lastInputs = inp;
+
+  const hero = $('fyBig'), story = $('fyStory');
+  if (res.found){
+    hero.textContent = res.startYear; hero.classList.remove('nofit');
+    const startRow = res.rows[res.startIdx];
+    const crashWord = res.crashesFaced >= 3 ? 'all 3 modeled crashes' : res.crashesFaced === 2 ? 'both modeled crashes' : 'the 1 modeled crash';
+    story.innerHTML = 'Under these assumptions, <b>' + res.startYear + '</b> is the first year your full ' + fmt$(inp.spend) +
+      (inp.adjust ? '/yr income (grown to <b>' + fmt$(startRow.draw) + '</b> by then)' : '/yr income') +
+      ' fits inside your <b>' + fmtP(inp.ceiling) + '</b> safety line — through ' + crashWord + ' left on the path to 2040. Waiting longer generally adds cushion.';
+  } else {
+    hero.textContent = 'DOESN’T FIT BY 2040'; hero.classList.add('nofit');
+    story.innerHTML = 'No start year keeps this plan under your ' + fmtP(inp.ceiling) + ' safety line — with at least one modeled crash still ahead to test it — by 2040. The honest levers: a smaller income target, more stacking years, or a bigger stack. Raising the safety line is the one lever we’d think hardest about.';
+  }
+
+  // honesty flags
+  const flags = [];
+  if (res.found && res.weakTest)
+    flags.push('⚠ This start year only faces 1 modeled crash before the model ends in 2040 — that’s a short test, not a proof. Treat it as “barely fits.”');
+  const friendly = (!$('scenWrap').hidden && state.scen === 'bull') || state.stress === 'milder' || inp.ceiling > 0.401;
+  if (friendly){
+    const honest = simulate({ ...inp, scen: (!$('scenWrap').hidden && state.scen === 'bull') ? 'base' : inp.scen, stress: 'standard', ceiling: Math.min(inp.ceiling, 0.40) });
+    if (!res.found || !honest.found || honest.startYear !== res.startYear)
+      flags.push('⚠ You’re testing the friendliest version of this plan. On standard settings (middle case, standard crashes, 40% line), ' +
+        (honest.found ? 'your year is ' + honest.startYear + '.' : 'it doesn’t fit by 2040.'));
+  }
+  if (res.found && inp.addUsd > 0 && inp.addYears > 0){
+    const noAdd = simulate({ ...inp, addUsd: 0 });
+    const used = Math.min(inp.addYears, res.startIdx - 1);
+    if (noAdd.found && noAdd.startYear === res.startYear){
+      const gain = ((noAdd.peak - res.peak) * 100).toFixed(1);
+      flags.push('Your yearly stacking didn’t move the year — it added ' + gain + ' points of extra cushion instead.' +
+        (used < inp.addYears ? ' (Only ' + used + ' of your ' + inp.addYears + ' stacking years happen before your income starts.)' : ''));
+    } else if (noAdd.found){
+      flags.push('Your yearly stacking pulled your year in from ' + noAdd.startYear + ' to ' + res.startYear + '.');
+    } else {
+      flags.push('Without your yearly stacking, this plan wouldn’t fit by 2040 at all.');
+    }
+  }
+  $('fyFlags').innerHTML = flags.map(f => '<div class="fy-flag">' + f + '</div>').join('');
+
+  // assumption stamp (so screenshots carry their settings)
+  const modelNames = { saylor:'Saylor Bitcoin24', bitwise:'Bitwise', powerlaw:'Power Law', vaneck:'VanEck', custom:'Custom ' + inp.customPct + '%/yr' };
+  const scenNames = { bear:'cautious', base:'middle', bull:'aggressive' };
+  const scenPart = $('scenWrap').hidden ? '' : ' (' + scenNames[state.scen] + ')';
+  $('fyStamp').textContent = 'Assumptions: ' + modelNames[inp.model] + scenPart + ' · ' + state.stress + ' crashes · ' +
+    fmtP(inp.ceiling) + ' safety line · ' + (inp.rate*100).toFixed(1) + '% rate · BTC ' + fmt$(inp.spot);
+
+  const last = res.rows[res.rows.length - 1];
+  const buffer = res.found ? inp.ceiling - res.peak : null;
+  const tiles = [];
+  if (res.found){
+    const startRow = res.rows[res.startIdx];
+    const ratio = res.peak / inp.ceiling;
+    const sev = ratio >= 0.85 ? 'warn' : ratio <= 0.7 ? 'ok' : '';
+    tiles.push({l:'INCOME STARTS AT', v:fmt$(startRow.draw), n:'in ' + res.startYear + (inp.adjust ? ' (inflation-grown)' : '')});
+    tiles.push({l:'HIGHEST BORROWING LEVEL', v:fmtP(res.peak), n:'worst year on the path', cls: sev === 'warn' ? 'warn' : ''});
+    tiles.push({l:'CUSHION LEFT', v:(buffer*100).toFixed(1) + ' pts', n:'points of room under your ' + fmtP(inp.ceiling) + ' line', cls: sev});
+    tiles.push({l:'STACK VALUE IN 2040', v:fmtC(last.stackVal), n:'still 100% yours — nothing sold'});
+    tiles.push({l:'TOTAL OWED BY 2040', v:fmtC(last.bal), n:'every loan, rolled forward'});
+  } else {
+    tiles.push({l:'STACK VALUE IN 2040', v:fmtC(last.stackVal), n: inp.addUsd > 0 ? 'stacking included — no borrowing' : 'with no borrowing at all'});
+    tiles.push({l:'YOUR SAFETY LINE', v:fmtP(inp.ceiling), n:'the constraint that failed'});
+  }
+  $('tiles').innerHTML = tiles.map(t =>
+    '<div class="tile ' + (t.cls||'') + '"><div class="t-lbl">' + t.l + '</div><div class="t-val">' + t.v + '</div><div class="t-note">' + t.n + '</div></div>').join('');
+
+  drawChartA(res, inp); drawChartB(res, inp); renderYearTable(res, inp);
+}
+
+/* ============================================================ charts */
+function svgEl(html){ const d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
+
+function drawChartA(res, inp){
+  const W = Math.max(360, $('chartA').clientWidth || 720), H = 250, L = 62, R = 14, T = 12, B = 26;
+  const lblEvery = W < 520 ? 4 : 2;
+  const rows = res.rows, n = rows.length;
+  const maxV = Math.max(...rows.map(r => Math.max(r.stackVal, r.bal))) * 1.06;
+  const x = i => L + (W - L - R) * (n === 1 ? 0 : i / (n - 1));
+  const y = v => T + (H - T - B) * (1 - v / maxV);
+
+  let g = '';
+  rows.forEach((r, i) => { if (r.phase === 'crash'){
+    const w = (W - L - R) / (n - 1);
+    g += '<rect x="' + (x(i) - w/2) + '" y="' + T + '" width="' + w + '" height="' + (H - T - B) + '" fill="#F26D6D" opacity="0.10"/>';
+  }});
+  for (let k = 0; k <= 4; k++){
+    const v = maxV * k / 4;
+    g += '<line x1="' + L + '" y1="' + y(v) + '" x2="' + (W-R) + '" y2="' + y(v) + '" stroke="rgba(138,248,250,.08)"/>' +
+         '<text x="' + (L-8) + '" y="' + (y(v)+4) + '" text-anchor="end" font-size="11" fill="#6E89A0">' + (v >= 1e6 ? '$' + (v/1e6).toFixed(v<5e6?1:0) + 'M' : '$' + Math.round(v/1000) + 'K') + '</text>';
+  }
+  const pts = f => rows.map((r,i) => x(i).toFixed(1) + ',' + y(f(r)).toFixed(1)).join(' ');
+  g += '<polygon points="' + x(0) + ',' + y(0) + ' ' + pts(r => r.stackVal) + ' ' + x(n-1) + ',' + y(0) + '" fill="#00A5AE" opacity="0.16"/>';
+  g += '<polyline points="' + pts(r => r.stackVal) + '" fill="none" stroke="#00A5AE" stroke-width="2.5" stroke-linejoin="round"/>';
+  g += '<polyline points="' + pts(r => r.bal) + '" fill="none" stroke="#D07E1F" stroke-width="2.5" stroke-linejoin="round"/>';
+  rows.forEach((r,i) => { if (i === 0 || i === n-1 || i % lblEvery === 0)
+    g += '<text x="' + x(i) + '" y="' + (H-8) + '" text-anchor="middle" font-size="10.5" fill="#86A2B9">' + (i===0 || i===n-1 ? r.y : '’'+String(r.y).slice(2)) + '</text>'; });
+  const lastR = rows[n-1];
+  g += '<circle cx="' + x(n-1) + '" cy="' + y(lastR.stackVal) + '" r="4" fill="#00A5AE"/>' +
+       '<circle cx="' + x(n-1) + '" cy="' + y(lastR.bal) + '" r="4" fill="#D07E1F"/>';
+  if (res.found){
+    const si = res.startIdx;
+    g += '<line x1="' + x(si) + '" y1="' + T + '" x2="' + x(si) + '" y2="' + (H-B) + '" stroke="#8AF8FA" stroke-dasharray="4 4" stroke-width="1.5"/>' +
+         '<text x="' + (x(si)+6) + '" y="' + (T+12) + '" font-size="11" font-weight="700" fill="#8AF8FA">FREEDOM YEAR</text>';
+  }
+  const svg = svgEl('<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Stack value versus total owed by year">' + g +
+    '<rect id="hitA" x="' + L + '" y="' + T + '" width="' + (W-L-R) + '" height="' + (H-T-B) + '" fill="transparent"/></svg>');
+  $('chartA').innerHTML = ''; $('chartA').appendChild(svg);
+  hover(svg, res, inp, L, W - R, n, W);
+}
+
+function drawChartB(res, inp){
+  const W = Math.max(360, $('chartB').clientWidth || 720), H = 110, L = 62, R = 14, T = 8, B = 24;
+  const lblEvery = W < 520 ? 4 : 2;
+  const rows = res.rows, n = rows.length;
+  const maxL = Math.max(inp.ceiling * 1.25, res.peak * 1.15, 0.1);
+  const x = i => L + (W - L - R) * (n === 1 ? 0 : i / (n - 1));
+  const y = v => T + (H - T - B) * (1 - v / maxL);
+  const bw = Math.min(18, (W - L - R) / n - 4);
+  let g = '';
+  rows.forEach((r,i) => { if (r.ltv != null){
+    const col = r.phase === 'crash' ? '#F26D6D' : '#D07E1F';
+    g += '<rect x="' + (x(i)-bw/2) + '" y="' + y(r.ltv) + '" width="' + bw + '" height="' + (y(0)-y(r.ltv)) + '" rx="3" fill="' + col + '"/>';
+    if (Math.abs(r.ltv - res.peak) < 1e-12)
+      g += '<text x="' + x(i) + '" y="' + (y(r.ltv)-5) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#EAF4F8">' + fmtP(r.ltv) + '</text>';
+  }});
+  g += '<line x1="' + L + '" y1="' + y(inp.ceiling) + '" x2="' + (W-R) + '" y2="' + y(inp.ceiling) + '" stroke="#F26D6D" stroke-width="1.5" stroke-dasharray="6 4"/>' +
+       '<text x="' + (W-R) + '" y="' + (y(inp.ceiling)-5) + '" text-anchor="end" font-size="11" font-weight="700" fill="#F26D6D">YOUR SAFETY LINE ' + fmtP(inp.ceiling) + '</text>' +
+       '<line x1="' + L + '" y1="' + y(0) + '" x2="' + (W-R) + '" y2="' + y(0) + '" stroke="rgba(138,248,250,.2)"/>';
+  rows.forEach((r,i) => { if (i % lblEvery === 0)
+    g += '<text x="' + x(i) + '" y="' + (H-6) + '" text-anchor="middle" font-size="10.5" fill="#86A2B9">’' + String(r.y).slice(2) + '</text>'; });
+  g += '<text x="' + (L-8) + '" y="' + (y(0)+4) + '" text-anchor="end" font-size="11" fill="#86A2B9">0%</text>' +
+       '<text x="' + (L-8) + '" y="' + (y(maxL*0.9)+4) + '" text-anchor="end" font-size="11" fill="#86A2B9">' + Math.round(maxL*90) + '%</text>';
+  const svg = svgEl('<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Borrowing level each year versus your safety line">' + g + '</svg>');
+  $('chartB').innerHTML = ''; $('chartB').appendChild(svg);
+  hover(svg, res, inp, L, W - R, n, W);
+}
+
+function hover(svg, res, inp, x0, x1, n, VW){
+  const tt = $('tooltip'), card = svg.closest('.chart-card');
+  const show = e => {
+    const r = svg.getBoundingClientRect();
+    const fx = (e.clientX - r.left) / r.width * VW;
+    const i = Math.max(0, Math.min(n - 1, Math.round((fx - x0) / (x1 - x0) * (n - 1))));
+    const row = res.rows[i];
+    const crash = row.phase === 'crash' ? ' · CRASH −' + Math.round(row.crashPct*100) + '%' : row.phase === 'boom' ? ' · BOOM' : '';
+    tt.innerHTML = '<div class="tt-y">' + row.y + crash + '</div>' +
+      '<div class="row"><span>BTC price</span><span>' + fmtC(row.p) + '</span></div>' +
+      '<div class="row"><span>Your stack</span><span>' + fmtC(row.stackVal) + '</span></div>' +
+      (row.draw > 0 ? '<div class="row"><span>Income drawn</span><span>' + fmt$(row.draw) + '</span></div>' : '') +
+      (row.bal > 0 ? '<div class="row"><span>Total owed</span><span>' + fmtC(row.bal) + '</span></div>' : '') +
+      (row.ltv != null ? '<div class="row"><span>Borrowing level</span><span>' + fmtP(row.ltv) + '</span></div>' : '<div class="row"><span>Borrowing</span><span>none yet</span></div>');
+    const cr = card.getBoundingClientRect();
+    tt.style.display = 'block';
+    let px = e.clientX - cr.left + 16, py = e.clientY - cr.top + 12;
+    if (px + 190 > cr.width) px -= 210;
+    tt.style.left = px + 'px'; tt.style.top = py + 'px';
+  };
+  svg.addEventListener('mousemove', show);
+  svg.addEventListener('pointerdown', show); // tap support on touch screens
+  svg.addEventListener('mouseleave', () => { tt.style.display = 'none'; });
+}
+
+/* ============================================================ year table */
+function phaseLabel(r, startIdx, i){
+  if (r.phase === 'crash') return '<span class="phase ph-crash">CRASH −' + Math.round(r.crashPct*100) + '%</span>';
+  if (r.phase === 'boom') return '<span class="phase ph-boom">BOOM</span>';
+  if (r.phase === 'now') return '<span class="phase ph-norm">TODAY</span>';
+  if (i === startIdx) return '<span class="phase ph-start">FREEDOM YEAR</span>';
+  return '<span class="phase ph-norm">' + (r.phase === 'trend' ? 'ON TREND' : '') + '</span>';
+}
+
+function renderYearTable(res, inp){
+  const chips = $('ybChips'), tbl = $('ybTable');
+  if (!res){ chips.innerHTML = '<span class="chip">Enter your numbers on the Calculator tab to see the year-by-year path.</span>'; tbl.innerHTML = ''; return; }
+  chips.innerHTML =
+    '<span class="chip">Stack today <b>' + fmt$(inp.stackUsd) + '</b></span>' +
+    '<span class="chip">Income target <b>' + fmt$(inp.spend) + '/yr</b></span>' +
+    '<span class="chip">Safety line <b>' + fmtP(inp.ceiling) + '</b></span>' +
+    '<span class="chip">Rate <b>' + (inp.rate*100).toFixed(1) + '%</b></span>' +
+    '<span class="chip">Freedom Year <b>' + (res.found ? res.startYear : 'doesn’t fit') + '</b></span>';
+  let h = '<tr><th>Year</th><th>What’s happening</th><th>BTC price</th><th>Your stack</th><th>Income drawn</th><th>Total owed</th><th>Borrowing level</th><th>Cushion</th></tr>';
+  res.rows.forEach((r, i) => {
+    const cls = r.phase === 'crash' ? 'crash' : (i === res.startIdx && res.found ? 'startyr' : '');
+    const cushion = r.ltv != null ? ((inp.ceiling - r.ltv) * 100).toFixed(1) + ' pts' : '—';
+    h += '<tr class="' + cls + '"><td>' + r.y + '</td><td>' + phaseLabel(r, res.found ? res.startIdx : -1, i) + '</td>' +
+      '<td>' + fmt$(r.p) + '</td><td>' + fmtC(r.stackVal) + '</td>' +
+      '<td>' + (r.draw > 0 ? fmt$(r.draw) : '—') + '</td><td>' + (r.bal > 0 ? fmt$(r.bal) : '—') + '</td>' +
+      '<td>' + (r.ltv != null ? fmtP(r.ltv) : '—') + '</td><td>' + cushion + '</td></tr>';
+  });
+  tbl.innerHTML = h;
+}
+
+$('btnCopy').addEventListener('click', () => {
+  if (!lastResult) return;
+  const res = lastResult, inp = lastInputs;
+  let csv = 'Year,Phase,BTC Price,Stack Value,Income Drawn,Total Owed,Borrowing Level %,Cushion pts\n';
+  res.rows.forEach(r => {
+    csv += [r.y, r.phase + (r.crashPct ? ' -' + Math.round(r.crashPct*100) + '%' : ''), Math.round(r.p), Math.round(r.stackVal),
+      Math.round(r.draw), Math.round(r.bal), r.ltv != null ? (r.ltv*100).toFixed(2) : '', r.ltv != null ? ((inp.ceiling - r.ltv)*100).toFixed(1) : ''].join(',') + '\n';
+  });
+  const done = () => { const b = $('btnCopy'); b.textContent = 'COPIED ✓'; setTimeout(() => b.textContent = 'COPY TABLE (FOR EXCEL)', 1800); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(csv).then(done).catch(() => fallbackCopy(csv, done));
+  } else fallbackCopy(csv, done);
+});
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* responsive: result hero moves above the inputs on narrow screens */
+const mqNarrow = matchMedia('(max-width:920px)');
+function placeHero(){
+  const hero = $('resultHero');
+  if (mqNarrow.matches) $('colInputs').insertBefore(hero, $('colInputs').firstChild);
+  else $('colResults').insertBefore(hero, $('colResults').firstChild);
+}
+if (mqNarrow.addEventListener) mqNarrow.addEventListener('change', placeHero); else mqNarrow.addListener(placeHero);
+
+/* redraw charts on resize so SVG text stays readable */
+let rsT; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (lastResult) recalc(); }, 200); });
+
+/* init */
+crashLegend(); scenHint(); placeHero();
+$('inStack').value = '900,000'; $('inSpend').value = '180,000'; // opens with the worked example
+recalc();
+</script>
+</body>
+</html>
